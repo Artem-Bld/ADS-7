@@ -2,49 +2,53 @@
 
 #include "train.h"
 
-Train::Train() {
-    countOp = 0;
-    first = nullptr;
-}
+Train::Train() : countOp(0), first(nullptr) {}
 
 void Train::addCar(bool light) {
-    Car* wagon = new Car();
-    wagon->light = light;
-    wagon->next = nullptr;
-    wagon->prev = nullptr;
-    
-    if (first == nullptr) {
-        first = wagon;
-        first->next = first;
-        first->prev = first;
-        return;
-    }
-    
-    Car* tail = first->prev;
-    tail->next = wagon;
-    wagon->prev = tail;
+  Car *wagon = new Car{light, nullptr, nullptr};
+  if (first == nullptr) {
+    first = wagon;
+    first->next = first;
+    first->prev = first;
+  } else {
     wagon->next = first;
+    wagon->prev = first->prev;
+    first->prev->next = wagon;
     first->prev = wagon;
+  }
 }
 
 int Train::getLength() {
-    if (first == nullptr) {
-        return 0;
-    } 
-    countOp = 0;
-    bool originalState = first->light;
-    first->light = !originalState;
-    int wagonCounter = 0;
-    Car* traveler = first;
+  if (first == nullptr) return 0;
+
+  countOp = 0;
+  first->light = true;
+  Car *pointer = first;
+
+  while (true) {
+    int distanceToIlluminated = 0;
+
     do {
-        traveler = traveler->next;
-        countOp++;
-        wagonCounter++;
-    } while (traveler->light != first->light);
-    first->light = originalState;
-    return wagonCounter;
+      pointer = pointer->next;
+      countOp++;
+      distanceToIlluminated++;
+    } while (!pointer->light);
+
+    pointer->light = false;
+
+    Car *backup = pointer;
+    for (int j = 0; j < distanceToIlluminated; j++) {
+      backup = backup->prev;
+      countOp++;
+    }
+
+    if (!backup->light) {
+      return distanceToIlluminated;
+    }
+    pointer = backup;
+  }
 }
 
 int Train::getOpCount() {
-    return countOp;
+  return countOp;
 }
