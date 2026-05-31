@@ -1,15 +1,20 @@
 // Copyright 2021 NNTU-CS
-#include "train.h"
 
-Train::Train() : countOp(0), first(nullptr), carCount(0) {}
+#include "train.h"
+#include <iostream>
+
+Train::Train() : countOp(0), first(nullptr), length(0) {}
 
 Train::~Train() {
     if (!first) return;
+    
     Car* current = first;
+    Car* nextCar = nullptr;
+    
     do {
-        Car* next = current->next;
+        nextCar = current->next;
         delete current;
-        current = next;
+        current = nextCar;
     } while (current != first);
 }
 
@@ -17,52 +22,58 @@ void Train::addCar(bool light) {
     Car* newCar = new Car(light);
     
     if (!first) {
-        newCar->next = newCar;
-        newCar->prev = newCar;
         first = newCar;
+        first->next = first;
+        first->prev = first;
     } else {
         Car* last = first->prev;
-        newCar->next = first;
-        newCar->prev = last;
         last->next = newCar;
+        newCar->prev = last;
+        newCar->next = first;
         first->prev = newCar;
     }
-    carCount++;
-}
-
-int Train::getOpCount() {
-    return countOp;
-}
-
-int Train::getActualLength() {
-    return carCount;
+    length++;
 }
 
 int Train::getLength() {
     if (!first) return 0;
-    if (carCount < 2) return carCount;
-    Car* start = first;
-    bool originalStartLight = start->light;
-    start->light = false;
-    for (int k = 1; ; k++) {
-        Car* current = start;
-        for (int i = 0; i < k; i++) {
+    countOp = 0;
+    first->light = false;
+    int wagonCount = 1;
+    Car* current = first->next;
+    bool found = false;
+    while (!found) {
+        if (current->light) {
+            current->light = false;
+            for (int i = 0; i < wagonCount; i++) {
+                current = current->next;
+                countOp++;
+            }
+            if (!current->light) {
+                found = true;
+            } else {
+                current = current->next;
+                countOp++;
+                wagonCount++;
+            }
+        } else {
+            current->light = true;
             current = current->next;
             countOp++;
+            wagonCount++;
         }
-        current->light = true;
-        for (int i = 0; i < k; i++) {
-            current = current->prev;
-            countOp++;
-        }
-        if (current != start) {
-            start->light = false;
-            continue;
-        }
-        if (start->light == true) {
-            start->light = originalStartLight;
-            return k;
-        }
-        start->light = false;
     }
+    return wagonCount;
+}
+
+int Train::getOpCount() const {
+    return countOp;
+}
+
+void Train::resetOpCount() {
+    countOp = 0;
+}
+
+int Train::getActualLength() const {
+    return length;
 }
