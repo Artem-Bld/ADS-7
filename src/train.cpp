@@ -2,55 +2,47 @@
 
 #include "train.h"
 
-Train::Train() : countOp(0), first(nullptr) {}
+Train::Train() {
+    countOp = 0;
+    first = nullptr;
+}
 
 void Train::addCar(bool light) {
-    Car* newCar = new Car;
-    newCar->light = light;
-    newCar->next = nullptr;
-    newCar->prev = nullptr;
+    Car* wagon = new Car();
+    wagon->light = light;
+    wagon->next = nullptr;
+    wagon->prev = nullptr;
     
-    if (!first) {
-        first = newCar;
+    if (first == nullptr) {
+        first = wagon;
         first->next = first;
         first->prev = first;
-    } else {
-        Car* last = first->prev;
-        last->next = newCar;
-        newCar->prev = last;
-        newCar->next = first;
-        first->prev = newCar;
+        return;
     }
+    
+    Car* tail = first->prev;
+    tail->next = wagon;
+    wagon->prev = tail;
+    wagon->next = first;
+    first->prev = wagon;
 }
 
 int Train::getLength() {
-    if (!first) return 0;
+    if (first == nullptr) {
+        return 0;
+    } 
     countOp = 0;
-    first->light = false;
-    int length = 1;
-    Car* current = first->next;
-    countOp++;
-    while (true) {
-        if (current->light) {
-            current->light = false;
-            for (int i = 0; i < length; i++) {
-                current = current->next;
-                countOp++;
-            }
-            if (!current->light) {
-                return length;
-            } else {
-                current = current->next;
-                countOp++;
-                length++;
-            }
-        } else {
-            current->light = true;
-            current = current->next;
-            countOp++;
-            length++;
-        }
-    }
+    bool originalState = first->light;
+    first->light = !originalState;
+    int wagonCounter = 0;
+    Car* traveler = first;
+    do {
+        traveler = traveler->next;
+        countOp++;
+        wagonCounter++;
+    } while (traveler->light != first->light);
+    first->light = originalState;
+    return wagonCounter;
 }
 
 int Train::getOpCount() {
