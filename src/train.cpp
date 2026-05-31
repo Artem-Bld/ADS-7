@@ -27,32 +27,26 @@ int Train::getLength() {
     if (!first) return 0;
     countOp = 0;
     first->light = false;
-    int wagonCount = 1;
+    int length = 1;
     Car* current = first->next;
     countOp++;
-    bool found = false;
-    while (!found) {
-        if (current->light) {
-            current->light = false;
-            for (int i = 0; i < wagonCount; i++) {
-                current = current->next;
-                countOp++;
-            }
-            if (!current->light) {
-                found = true;
-            } else {
-                current = current->next;
-                countOp++;
-                wagonCount++;
-            }
-        } else {
-            current->light = true;
-            current = current->next;
-            countOp++;
-            wagonCount++;
+    while (!current->light) {
+        current->light = true;
+        current = current->next;
+        countOp++;
+        length++;
+        if (length > 1000000) {
+            return -1;
         }
     }
-    return wagonCount;
+    for (int i = 0; i < length; i++) {
+        current = current->next;
+        countOp++;
+    }
+    if (!current->light) {
+        return length;
+    }
+    return length;
 }
 
 int Train::getOpCount() {
